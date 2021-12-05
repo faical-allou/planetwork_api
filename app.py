@@ -1,19 +1,42 @@
-from flask import Flask, send_file, request, redirect, url_for, abort
+from flask import Flask, send_file, request, redirect, url_for, abort, send_from_directory
 from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
+import time
 
 import os, os.path
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = './temp/'
 CORS(app)
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 @app.route('/')
 def hello():
     return 'Hello there'
 
+@app.route('/upload/<filetype>', methods=['GET', 'POST'])
+def upload(filetype):
+    if request.method == 'POST':
+        file = request.files[filetype]
+        
+        if file:
+            filename = filetype
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            
+    return 'upload done'
+
+@app.route('/download/<filename>')
+def send_file(filename):
+    time.sleep(10)  
+    return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER']), filename)
 
 if __name__ == '__main__':
-
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
     if os.environ.get('ON_HEROKU'):
         port = int(os.environ.get('PORT'))
