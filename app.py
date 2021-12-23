@@ -24,9 +24,10 @@ def hello():
 def upload(filetype):
     if request.method == 'POST':
         file = request.files[filetype]
-        
+        analysisName = request.form['analysisName']
+        print(analysisName)
         if file:
-            filename = filetype
+            filename = analysisName+"."+filetype
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             
     return 'upload done'
