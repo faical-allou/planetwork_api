@@ -1,13 +1,16 @@
-from flask import Flask, send_file, request, redirect, url_for, abort, send_from_directory
+from flask import Flask, request,  send_from_directory
 from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
 import time
+from models.mkshare import *
 
 import os, os.path
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './temp/'
 CORS(app)
+
+mkshareModel = mkshareModel()
 
 @app.after_request
 def after_request(response):
@@ -27,15 +30,21 @@ def upload(filetype):
         analysisName = request.form['analysisName']
         print(analysisName)
         if file:
-            filename = analysisName+"."+filetype
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            
-    return 'upload done'
+            filename = analysisName+"-"+filetype
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))       
+    return ' upload done'
 
 @app.route('/download/<filename>')
 def send_file(filename):
     time.sleep(10)  
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER']), filename)
+
+@app.route('/run')
+def run_mksare():
+    mkshareModel.read_files()
+    return 'done'
+
+
 
 if __name__ == '__main__':
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
