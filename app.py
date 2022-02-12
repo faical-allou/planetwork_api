@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './temp/'
 CORS(app)
 
-mkshareModel = mkshareModel()
+mkshareModel = MkshareModel()
 
 @app.after_request
 def after_request(response):
@@ -21,7 +21,7 @@ def after_request(response):
 
 @app.route('/')
 def hello():
-    return 'Hello there'
+    return 'Hello there Plantework'
 
 @app.route('/upload/<filetype>', methods=['GET', 'POST'])
 def upload(filetype):
