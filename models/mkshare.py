@@ -6,41 +6,44 @@ import random
 
 class MkshareModel:
 
-    def read_data(self):
+    def read_data(self, input_directory, param_directory, analysisName):
         data = {}
         param = {}
-        input_directory = '../temp'
-        param_directory = '../param'
         for _filename in os.listdir(input_directory):
-            if _filename[0] == '.':
+            if _filename[0] == '.' or len(_filename.split('-')) != 2:
                 continue
-            df_data = pd.read_csv(input_directory+'/'+_filename,  header = None)
+
             filetype = _filename.split('-')[1]
-            column_dict = { 
-                    'sked': ['from', 'to', 'al','fln', 'actype', 'depday','dep','arrday','arr'],
-                    'comp': ['from', 'to', 'al', 'fln','actype', 'depday','dep','arrday','arr'],
-                    'demand': ['orig', 'dest', 'unit','unit_vol', 'rev'],
-                    'demand_curve': ['orig', 'dest', 'ttt_1','ttt_2', 'ttt_3','ttt_4'],          
-                    'route_cost': ['from','to', 'actype', 'route_cost'],
-                    'airport_cost': ['ap', 'actype', 'airp_cost'],
-                    'aircraft_fix_cost': ['actype', 'airc_fix_cost'],
-                    'config': ['actype', 'unit_cap', 'vol_cap']
-            }
-            df_data.columns = column_dict[filetype]
-            data[filetype] = df_data
-            
-        for _filename in os.listdir(param_directory):
-            if _filename[0] == '.':
-                continue
-            df_data = pd.read_csv(param_directory+'/'+_filename,  header = None)
-            column_dict = { 
-                    'network' : ['stops_allowed'],
-                    'connections': ['hub', 'minct', 'maxct'],
-                    'preferences' : ['from', 'to', 'stop_penalty'],
-                    'airports': ["country_code","region_name","iata","icao","airport","latitude","longitude"]
-            }
-            df_data.columns = column_dict[_filename]
-            param[_filename] = df_data
+            if _filename.split('-')[0] == analysisName:
+                df_data = pd.read_csv(input_directory+'/'+_filename,  header = None)
+                column_dict = { 
+                        'sked': ['from', 'to', 'al','fln', 'actype', 'depday','dep','arrday','arr'],
+                        'comp': ['from', 'to', 'al', 'fln','actype', 'depday','dep','arrday','arr'],
+                        'demand': ['orig', 'dest', 'unit','unit_vol', 'rev'],
+                        'demand_curve': ['orig', 'dest', 'ttt_1','ttt_2', 'ttt_3','ttt_4'],          
+                        'route_cost': ['from','to', 'actype', 'route_cost'],
+                        'airport_cost': ['ap', 'actype', 'airp_cost'],
+                        'aircraft_fix_cost': ['actype', 'airc_fix_cost'],
+                        'config': ['actype', 'unit_cap', 'vol_cap'],
+                        'network' : ['stops_allowed'],
+                        'connections': ['hub', 'minct', 'maxct'],
+                        'preferences' : ['from', 'to', 'stop_penalty'],
+                }
+                if filetype in column_dict:
+                    df_data.columns = column_dict[filetype]
+                    data[filetype] = df_data
+                
+            for _filename in os.listdir(param_directory):
+                if _filename[0] == '.':
+                    continue
+                filetype = _filename
+                df_data = pd.read_csv(param_directory+'/'+_filename,  header = None)
+                column_dict = { 
+                        'airports': ["country_code","region_name","iata","icao","airport","latitude","longitude"]
+                }
+                if filetype in column_dict:
+                    df_data.columns = column_dict[filetype]
+                    param[_filename] = df_data
         return data, param
 
     def gcd(self, lon1, lat1, lon2, lat2):
@@ -55,9 +58,9 @@ class MkshareModel:
         comp_sked = data['comp']
         data_config = data['config']
 
-        param_connect = param['connections']
-        param_pref = param['preferences']
-        param_pref['od'] = param_pref["from"]+param_pref["to"]
+        data_connect = data['connections']
+        data_pref = data['preferences']
+        data_pref['od'] = data_pref["from"]+data_pref["to"]
         param_airport = param['airports']
         param_airport['latitude']= param_airport['latitude'].astype(float)
         param_airport['longitude']= param_airport['longitude'].astype(float)
@@ -83,8 +86,8 @@ class MkshareModel:
 
         full_sked["dist"] = full_sked.apply(lambda x: self.gcd(x['longitude_from'], x['latitude_from'],x['longitude_to'], x['latitude_to']), axis=1)
 
-        param_connect['minct'] = pd.to_timedelta(param_connect['minct'])
-        param_connect['maxct'] = pd.to_timedelta(param_connect['maxct'])
+        data_connect['minct'] = pd.to_timedelta(data_connect['minct'])
+        data_connect['maxct'] = pd.to_timedelta(data_connect['maxct'])
 
         df_connect = full_sked.add_suffix('_1').reset_index(drop=True)
         df_connect['nbstops'] = 0
@@ -98,7 +101,7 @@ class MkshareModel:
 
         #build itineraries
         for i in range (1,max_stop+1):
-            cnx_p = param_connect.copy()
+            cnx_p = data_connect.copy()
             itins = list_itin[i-1].merge(full_sked.add_suffix('_'+str(i+1)), how= "cross")
             
             
@@ -128,20 +131,20 @@ class MkshareModel:
             list_itin[i]["od"] = list_itin[i]["from_1"]+list_itin[i]["to_"+str(i+1)]
             list_itin[i]["index"] = list_itin[i].index
             list_itin[i]['itin_id'] = list_itin[i]["nbstops"].astype(str)+"-"+list_itin[i]["index"].astype(str)
-            list_itin[i] = list_itin[i].merge(param_pref, on="od")
+            list_itin[i] = list_itin[i].merge(data_pref, on="od")
 
             #calculate score
             list_itin[i]["score"] = list_itin[i]["travel_time"].dt.seconds+list_itin[i]["nbstops"]*list_itin[i]["stop_penalty"]*3600
         return full_sked, list_itin
 
-    def build_options(self, list_itin, max_stop, param_pref):
+    def build_options(self, list_itin, max_stop, data_pref):
         od_itin = {}
         list_itin_summary = pd.DataFrame(columns=["itin_id","index", "od","travel_time", "nbstops","score"])
 
         for i in range(0,max_stop+1):
             list_itin_summary= pd.concat([list_itin_summary,list_itin[i][["itin_id","index", "od","travel_time", "nbstops","score"]]]) 
         #organize data by OD
-        for od in param_pref.od.unique():    
+        for od in data_pref.od.unique():    
             od_itin[od] = list_itin_summary[list_itin_summary['od']==od].copy()
         return list_itin_summary, od_itin
 
@@ -170,7 +173,7 @@ class MkshareModel:
             demand_rand[i] = randm
         return demand_rand
 
-    def allocate_traffic(self, max_stop, timep, demand, param_pref, full_sked, list_itin, list_itin_summary, od_itin, demand_rand ):
+    def allocate_traffic(self, max_stop, timep, demand, data_pref, full_sked, list_itin, list_itin_summary, od_itin, demand_rand ):
         spill = dict.fromkeys(demand['od'].unique(),0)
 
         avail_list_itin = {}
@@ -222,7 +225,7 @@ class MkshareModel:
                             for j in range(0, max_stop+1):
                                 for k in range(0,j+1):
                                     avail_list_itin[j].drop(avail_list_itin[j][avail_list_itin[j]['id_'+str(k+1)] == flights_chosen].index, inplace=True)
-                            avail_list_itin_summary, avail_od_itin = self.build_options(avail_list_itin, max_stop, param_pref)
+                            avail_list_itin_summary, avail_od_itin = self.build_options(avail_list_itin, max_stop, data_pref)
                             
                 else:
                     #log spill
