@@ -2,6 +2,8 @@ from flask import Flask, request,  send_from_directory
 from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
 import time
+import json
+
 from models.mkshare import *
 from models.cost import *
 
@@ -10,6 +12,7 @@ import os, os.path
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './temp/'
 app.config['PARAM_FOLDER'] = './param/'
+app.config['RESULT_FOLDER'] = './results/'
 CORS(app)
 
 mkmod = MkshareModel()
@@ -40,7 +43,7 @@ def upload(filetype):
 @app.route('/download/<filename>')
 def send_file(filename):
     time.sleep(10)  
-    return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER']), filename)
+    return send_from_directory(os.path.join(app.config['RESULT_FOLDER']), filename)
 
 @app.route('/run/<analysisName>')
 def run_mksare(analysisName):
@@ -55,13 +58,24 @@ def run_mksare(analysisName):
     spill, full_sked_rev, list_itin, avail_list_itin = mkmod.allocate_traffic(max_stop, time_period, data["demand"],data['preferences'], full_sked, list_itin, list_itin_summary, od_itin, demand_rand )
     route_prof = costmod.create_route_prof(data, full_sked_rev)
     filename = 'test'+'-route_prof.csv'
-    route_prof.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    route_prof.to_csv(os.path.join(app.config['RESULT_FOLDER'], filename))
     print('done')
     return 'done'
 
 @app.route('/run/')
 def run_nothing():
     return 'Choose an analysis'
+
+@app.route('/resultlist/')
+def list_results():
+    results = set()
+    for _filename in os.listdir(app.config['UPLOAD_FOLDER']):
+        if _filename[0] == '.' or len(_filename.split('-')) != 2:
+                continue 
+        results.add(_filename.split('-')[0])
+
+    return json.dumps(list(results))
+
 
 if __name__ == '__main__':
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
