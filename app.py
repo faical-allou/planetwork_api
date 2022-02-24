@@ -44,9 +44,9 @@ def send_file(filename):
 
 @app.route('/run/<analysisName>')
 def run_mksare(analysisName):
-
+    print('starting')
     max_stop = 1
-    time_period = 4
+    time_period = 1
 
     data, param = mkmod.read_data(os.path.join(app.config['UPLOAD_FOLDER']), os.path.join(app.config['PARAM_FOLDER']), analysisName)
     full_sked, list_itin = mkmod.create_itin(data,param, max_stop)
