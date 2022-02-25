@@ -230,8 +230,9 @@ class MkshareModel:
                 else:
                     #log spill
                     spill[od_select] += 1 
+        spill_df = pd.DataFrame.from_dict(spill, orient='index').reset_index()
 
-        return spill, full_sked, list_itin, avail_list_itin
+        return spill_df, full_sked, list_itin, avail_list_itin
 
 def __init__(self):
         print ("in init")
