@@ -2,3 +2,7 @@
 *.pyc
 temp/*
 results/*
+results/test.zip
+results/test/test-full_sked.csv
+results/test/test-route_prof.csv
+results/test/test-spill.csv
