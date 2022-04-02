@@ -67,7 +67,8 @@ def run_mksare(analysisName):
 
     outputfolder = os.path.join(app.config['RESULT_FOLDER'], analysisName)
     
-    rmtree(outputfolder)
+    if os.path.isdir(outputfolder):
+        rmtree(outputfolder)
     os.mkdir(outputfolder)
 
     route_prof.to_csv(os.path.join(outputfolder, analysisName+'-route_prof.csv'))
