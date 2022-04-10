@@ -2,4 +2,4 @@
 *.pyc
 temp/*
 results/*
-
+upload/*

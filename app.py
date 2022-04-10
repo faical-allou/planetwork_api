@@ -13,9 +13,13 @@ from models.cost import *
 
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './temp/'
+app.config['TEMPO_FOLDER'] = './temp/'
+app.config['UPLOAD_FOLDER'] = './upload/'
+
 app.config['PARAM_FOLDER'] = './param/'
 app.config['RESULT_FOLDER'] = './results/'
+app.config['TEMPLATE_FOLDER'] = './template/'
+
 CORS(app)
 
 mkmod = MkshareModel()
@@ -43,13 +47,31 @@ def upload(filetype):
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))       
     return ' upload done'
 
-@app.route('/download/<filename>')
-def send_file(filename): 
-    return send_from_directory(os.path.join(app.config['RESULT_FOLDER']), filename)
+@app.route('/download_resultzip/<analysisname>')
+def send_file(analysisname): 
+    return send_from_directory(os.path.join(app.config['RESULT_FOLDER']), analysisname+".zip")
 
 @app.route('/download_rp/<analysisname>')
 def send_route_prof(analysisname): 
     return send_from_directory(os.path.join(app.config['RESULT_FOLDER'],analysisname), analysisname+"-route_prof.csv")
+
+@app.route('/download_template/<filetype>')
+def send_template(filetype): 
+    print(os.path.join(app.config['TEMPLATE_FOLDER'],filetype), "template-"+filetype)
+    return send_from_directory(os.path.join(app.config['TEMPLATE_FOLDER']), "template-"+filetype+".csv")
+
+@app.route('/clear_result/<analysisname>')
+def clear_result(analysisname):
+    path1 = os.path.join(app.config['RESULT_FOLDER'],analysisname)
+    path2 = os.path.join(app.config['RESULT_FOLDER'], analysisname+".zip")
+    print(path1)
+    if os.path.isdir(path1):
+        rmtree(path1)
+    if os.path.isfile(path2):
+        os.remove(path2) 
+    
+    return 'done'
+
 
 
 @app.route('/run/<analysisName>')
@@ -88,10 +110,10 @@ def run_nothing():
 @app.route('/resultlist/')
 def list_results():
     results = set()
-    for _filename in os.listdir(app.config['UPLOAD_FOLDER']):
-        if _filename[0] == '.' or len(_filename.split('-')) != 2:
+    for _filename in os.listdir(app.config['RESULT_FOLDER']):
+        if _filename[0] == '.' or len(_filename.split('.')) != 2:
                 continue 
-        results.add(_filename.split('-')[0])
+        results.add(_filename.split('.')[0])
 
     return json.dumps(list(results))
 
