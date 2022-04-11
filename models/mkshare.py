@@ -15,7 +15,7 @@ class MkshareModel:
 
             filetype = _filename.split('-')[1]
             if _filename.split('-')[0] == analysisName:
-                df_data = pd.read_csv(input_directory+'/'+_filename,  header = None)
+                df_data = pd.read_csv(input_directory+'/'+_filename,  header = 0)
                 column_dict = { 
                         'sked': ['from', 'to', 'al','fln', 'actype', 'depday','dep','arrday','arr'],
                         'comp': ['from', 'to', 'al', 'fln','actype', 'depday','dep','arrday','arr'],

@@ -1,3 +1,4 @@
+orig_airport, dest_airport, demand_vol, unit_weight, rev_vol
 DUS,TXL,100,12,10
 DUS,CDG,100,23,23
 DUS,FRA,112,312,23

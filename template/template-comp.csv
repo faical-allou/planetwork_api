@@ -1,3 +1,4 @@
+orig_aiport, dest_airport, airline, flt_number, aircraft, dep_weekday, departure_utc, arr_weekday, arrival_utc
 DUS,TXL,LH,1,737,1,10:00,1,12:00
 DUS,CDG,LH,2,737,1,14:00,1,17:00
 DUS,FRA,LH,3,737,1,10:20,1,15:00

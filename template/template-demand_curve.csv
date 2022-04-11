@@ -1,3 +1,4 @@
+orig_aiport, dest_airport, %_period_1, %_period_2, %_period_3, %_period_4
 DUS,TXL,0.2,0.3,0.3,0.2
 DUS,CDG,0.3,0.2,0.3,0.2
 DUS,FRA,0.2,0.3,0.3,0.2

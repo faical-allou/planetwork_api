@@ -1,3 +1,4 @@
+airport, min_cnx_time, max_cnx_time
 DUS,1:00:00,8:00:00
 CDG,0:15:00,8:00:00
 TXL,0:15:00,8:00:00

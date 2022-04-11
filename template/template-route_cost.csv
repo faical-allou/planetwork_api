@@ -1,4 +1,5 @@
-﻿DUS,TXL,737,1500
+﻿orig_aiport, dest_airport, aircraft, cost
+DUS,TXL,737,1500
 DUS,CDG,737,1000
 DUS,FRA,737,800
 DUS,LHR,737,1200
