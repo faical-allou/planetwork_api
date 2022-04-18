@@ -45,7 +45,7 @@ def upload(filetype):
         if file:
             filename = analysisName+"-"+filetype
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))       
-    return ' upload done'
+    return 'done'
 
 @app.route('/download_resultzip/<analysisname>')
 def send_file(analysisname): 
